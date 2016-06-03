@@ -147,7 +147,10 @@ public class TraceFilter extends OncePerRequestFilter {
 				} else {
 					spanFromRequest.logEvent(Span.SERVER_SEND);
 				}
-				this.tracer.close(spanFromRequest);
+				// in case of a response with exception status a exception controller will close the span
+				if (response.getStatus() >= 200 && response.getStatus() <= 299) {
+					this.tracer.close(spanFromRequest);
+				}
 			}
 		}
 	}
@@ -214,7 +217,7 @@ public class TraceFilter extends OncePerRequestFilter {
 			this.tracer.addTag(this.traceKeys.getHttp().getStatusCode(),
 					String.valueOf(HttpServletResponse.SC_INTERNAL_SERVER_ERROR));
 		}
-		else if ((httpStatus < 200) || (httpStatus > 299)) {
+		else if ((httpStatus < 200) || (httpStatus > 399)) {
 			this.tracer.addTag(this.traceKeys.getHttp().getStatusCode(),
 					String.valueOf(response.getStatus()));
 		}
